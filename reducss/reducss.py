@@ -60,10 +60,12 @@ def get_unused(htmlstr, cssstr, whitelist=[]):
     cssstr = re.sub(r"/\*.*?\*/", "", cssstr)
     cssstr = re.sub(r" *, *", ",", cssstr)
     cssstr = re.sub(r" *: *", ":", cssstr)
+    cssstr = re.sub(r" *! *", "!", cssstr)
     cssstr = re.sub(r" *\> *", ">", cssstr)
     cssstr = re.sub(r" *\+(?=[^}]*?{) *", "+", cssstr)
     cssstr = re.sub(r" *\*(?=[^}]*?{) *", "*", cssstr)
-    cssstr = re.sub(r" *(?=[{}]) *", "", cssstr)
+    cssstr = re.sub(r" *(?=[(){}]) *", "", cssstr)
+    cssstr = cssstr.replace("0.", ".")
     d = parse(cssstr)
     soup = BeautifulSoup(htmlstr, "html.parser")
     unused = {}
