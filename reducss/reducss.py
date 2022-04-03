@@ -44,8 +44,8 @@ def parse(cssstr):
     return d
 
 
-def reduce(htmlstr, cssstr, whitelist=[]):
-    """reduce.
+def get_unused(htmlstr, cssstr, whitelist=[]):
+    """get_unused.
 
     Parameters
     ----------
@@ -66,12 +66,13 @@ def reduce(htmlstr, cssstr, whitelist=[]):
     cssstr = re.sub(r" *(?=[{}]) *", "", cssstr)
     d = parse(cssstr)
     soup = BeautifulSoup(htmlstr, "html.parser")
-    cut = []
+    unused = {}
     for sel, points in d.items():
         if sel[0] == "@":
             continue
         if sel in whitelist:
             continue
+        _sel = sel
         sel = sel.replace(">:last-child", "")
         sel = re.sub(r":.*?(?=([,+>]|$))", "", sel)
         sel = sel.strip(",")
@@ -79,8 +80,27 @@ def reduce(htmlstr, cssstr, whitelist=[]):
             continue
         els = soup.select(sel)
         if not els:
-            for p in points:
-                cut.append(p)
+            unused[_sel] = points
+    return unused, cssstr
+
+
+def reduce(htmlstr, cssstr, whitelist=[]):
+    """reduce.
+
+    Parameters
+    ----------
+    htmlstr :
+        htmlstr
+    cssstr :
+        cssstr
+    whitelist :
+        whitelist
+    """
+    unused, cssstr = get_unused(htmlstr, cssstr, whitelist)
+    cut = []
+    for _, points in unused.items():
+        for p in points:
+            cut.append(p)
     sorted_cut = sorted(cut)
     cut = []
     for c in sorted_cut:
@@ -94,7 +114,7 @@ def reduce(htmlstr, cssstr, whitelist=[]):
             cut[-1][1] = c[1]
     cutted = 0
     for c in cut:
-        cssstr = cssstr[: c[0] - cutted] + cssstr[1 + c[1] - cutted:]
+        cssstr = cssstr[: c[0] - cutted] + cssstr[1 + c[1] - cutted :]
         cutted += 1 - c[0] + c[1]
     cssstr = re.sub(r"}{.*?(?=[{}])", "", cssstr[::-1])[::-1]
     return cssstr
