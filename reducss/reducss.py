@@ -44,7 +44,7 @@ def parse(cssstr):
     return d
 
 
-def reduce(htmlstr, cssstr):
+def reduce(htmlstr, cssstr, whitelist=[]):
     """reduce.
 
     Parameters
@@ -53,6 +53,8 @@ def reduce(htmlstr, cssstr):
         htmlstr
     cssstr :
         cssstr
+    whitelist :
+        whitelist
     """
     cssstr = "".join([line.strip() for line in cssstr.split("\n")])
     cssstr = re.sub(r"/\*.*?\*/", "", cssstr)
@@ -73,6 +75,8 @@ def reduce(htmlstr, cssstr):
         sel = sel.strip(",")
         if not sel:
             continue
+        if sel in whitelist:
+            continue
         els = soup.select(sel)
         if not els:
             for p in points:
@@ -90,19 +94,21 @@ def reduce(htmlstr, cssstr):
             cut[-1][1] = c[1]
     cutted = 0
     for c in cut:
-        cssstr = cssstr[: c[0] - cutted] + cssstr[1 + c[1] - cutted :]
+        cssstr = cssstr[: c[0] - cutted] + cssstr[1 + c[1] - cutted:]
         cutted += 1 - c[0] + c[1]
     cssstr = re.sub(r"}{.*?(?=[{}])", "", cssstr[::-1])[::-1]
     return cssstr
 
 
-def auto(dirname):
+def auto(dirname, whitelist=[]):
     """auto.
 
     Parameters
     ----------
     dirname :
         dirname
+    whitelist :
+        whitelist
     """
     htmlstr = ""
     for htmlpath in glob.glob(os.path.join(dirname, "**/*.html"), recursive=True):
