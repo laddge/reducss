@@ -70,12 +70,12 @@ def reduce(htmlstr, cssstr, whitelist=[]):
     for sel, points in d.items():
         if sel[0] == "@":
             continue
+        if sel in whitelist:
+            continue
         sel = sel.replace(">:last-child", "")
         sel = re.sub(r":.*?(?=([,+>]|$))", "", sel)
         sel = sel.strip(",")
         if not sel:
-            continue
-        if sel in whitelist:
             continue
         els = soup.select(sel)
         if not els:
